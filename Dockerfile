@@ -16,8 +16,7 @@ RUN go build -o app -a -ldflags '-extldflags "-static"' github.com/lsgrep/jumpge
 FROM alpine
 RUN apk update && apk add ca-certificates bash && rm -rf /var/cache/apk/*
 
-## for permission denied etc issues, BTW not a good practice ,  TODO
-USER root
+USER app
 
 WORKDIR /work
 VOLUME /data

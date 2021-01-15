@@ -35,6 +35,7 @@ You can setup TLS with Traefik or Nginx. Checkout `docker-compose.yaml` for Trae
 4. Install JumpGet client, Checkout [Releases](https://github.com/lsgrep/jumpget/releases)
 
 For *nix systems:
+
 ```
 sudo curl -L https://github.com/lsgrep/jumpget/releases/download/v0.1.8/jumpget_$(uname -s)_amd64 -o /usr/local/bin/jumpget
 sudo chmod +x /usr/local/bin/jumpget
@@ -65,7 +66,7 @@ sudo chmod +x /usr/local/bin/jumpget
 
 ## Performance
 
-1. Enable TCP congestion control on JumpGet server
+1. Enable better TCP congestion control method on JumpGet server
 
 ```
 # bbr
