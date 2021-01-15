@@ -80,9 +80,19 @@ func createPublicServer(port int, downloadDir string) *http.Server {
 		log.Println(string(bs))
 		ip := strings.Split(request.RemoteAddr, ":")[0]
 		log.Printf("remote ip is: %v\n", ip)
+		xRealIp := request.Header.Get("X-Real-Ip")
+		forwardedIp := request.Header.Get("X-Forwarded-For")
+		validIp := false
+		for _, i := range []string{ip, forwardedIp, xRealIp} {
+			if _, ok := ips.Load(i); ok {
+				validIp = true
+				break
+			}
+		}
+
 		// limit access
-		if _, ok := ips.Load(ip); ok {
-			http.StripPrefix("/data/", fs).ServeHTTP(writer, request)
+		if validIp {
+			http.StripPrefix("/data/", fs).ServeHTTP(writer, request),
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 		}
