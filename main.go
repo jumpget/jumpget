@@ -92,7 +92,7 @@ func createPublicServer(port int, downloadDir string) *http.Server {
 
 		// limit access
 		if validIp {
-			http.StripPrefix("/data/", fs).ServeHTTP(writer, request),
+			http.StripPrefix("/data/", fs).ServeHTTP(writer, request)
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 		}
