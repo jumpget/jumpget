@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func Download(url, downloadDir string) (fileName string, err error) {
@@ -60,8 +61,7 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 	splits := strings.Split(url, "/")
 	fileName := splits[len(splits)-1]
 	filePath := fmt.Sprintf("%s/%s", downloadDir, fileName)
-	fmt.Printf("filepath: %v\n", filePath)
-
+	start := time.Now()
 	// Create the file, but give it a tmp file extension, this means we won't overwrite a
 	// file until it's downloaded, but we'll remove the tmp extension once downloaded.
 	out, err := os.Create(filePath + ".tmp")
@@ -93,6 +93,9 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 	if err = os.Rename(filePath+".tmp", filePath); err != nil {
 		return err
 	}
+
+	duration := time.Since(start)
+	fmt.Printf("Download finished in %v\n", duration)
 	return nil
 }
 
