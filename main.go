@@ -232,6 +232,7 @@ func main() {
 			panic(err)
 		}
 
+		// check if the port is open
 		command := `curl -s -H "Content-Type: application/json" -X POST --data '%s'  localhost:%d/download`
 		c := fmt.Sprintf(command, string(data), localPort)
 		fmt.Printf("Starting download task on server: %v\n", host)
@@ -241,6 +242,15 @@ func main() {
 		result = strings.TrimSpace(result)
 		splits := strings.Split(strings.TrimSpace(result), "\n")
 		newDownloadUrl := splits[len(splits)-1]
+
+		if !utils.IsValidURL(newDownloadUrl) {
+			errMsg := `Invalid download URL(%s) has been returned from the JumpGet server. 
+						1. check if JumpGet server is running.
+						2. Check if JUMPGET_PUBLIC_URL is configured correctly(http or https schemes should be present)\n`
+			fmt.Printf(errMsg, newDownloadUrl)
+			return
+		}
+
 		fmt.Printf("New location: %v, whitelisted ips: %v\n", newDownloadUrl, strings.Join(ips, ","))
 		err = utils.DownloadWithProgress(".", newDownloadUrl)
 		if err != nil {
