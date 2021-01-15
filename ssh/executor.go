@@ -71,6 +71,6 @@ func (exec *RemoteExecutor) Init() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("connected to host: %v:%v\n", exec.host, exec.port)
+	fmt.Printf("Connected to host: %v:%v\n", exec.host, exec.port)
 	return nil
 }
