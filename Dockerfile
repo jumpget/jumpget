@@ -13,11 +13,11 @@ RUN go build -o app -a -ldflags '-extldflags "-static"' github.com/lsgrep/jumpge
 ## final container
 FROM alpine
 RUN apk update && apk add ca-certificates bash && rm -rf /var/cache/apk/*
-
-VOLUME /data
-RUN addgroup -S jumpget && adduser -S jumpget -G jumpget
-RUN chown -R jumpget /data
+RUN addgroup -S jumpget && adduser -S -G jumpget -h /home/jumpget jumpget
+RUN mkdir /home/jumpget; chown -R jumpget:jumpget /home/jumpget
 USER jumpget
+RUN mkdir -p /home/jumpget/data
+VOLUME /home/jumpget/data
 
 WORKDIR /work
 #RUN mkdir /data

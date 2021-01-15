@@ -60,6 +60,7 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 	splits := strings.Split(url, "/")
 	fileName := splits[len(splits)-1]
 	filePath := fmt.Sprintf("%s/%s", downloadDir, fileName)
+	fmt.Printf("filepath: %v\n", filePath)
 
 	// Create the file, but give it a tmp file extension, this means we won't overwrite a
 	// file until it's downloaded, but we'll remove the tmp extension once downloaded.
