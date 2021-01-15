@@ -1,6 +1,9 @@
 # JumpGet [![JumpGet](https://circleci.com/gh/lsgrep/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
 
 ![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.png)
+JumpGet client can submit download url to the JumpGet server with `ssh` tunnel, then JumpGet server downloads & serves the file
+only to the JumpGet client IPs(whitelisted).
+
 
 ## Why?
 
@@ -11,7 +14,8 @@
 
 ## Installation
 
-1. You need a JumpGet server. You can get a cheap VPS instance from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f), Digital Ocean or AWS Lightsail
+1. You need a JumpGet server. You can get a cheap VPS instance
+   from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f), Digital Ocean or AWS Lightsail
 
 2. Add your SSH public key to the server(`~/.ssh/authorized_keys`). The download tasks are submitted through the `SSH`
    connection.
