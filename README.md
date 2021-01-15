@@ -1,4 +1,4 @@
-# JumpGet
+# JumpGet [![JumpGet](https://circleci.com/gh/lsgrep/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
 
 ## Why?
 
