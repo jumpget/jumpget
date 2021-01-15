@@ -69,9 +69,9 @@ func getIps() (ips []string) {
 
 var ips sync.Map
 
-func createPublicServer(port int) *http.Server {
+func createPublicServer(port int, downloadDir string) *http.Server {
 	m := http.NewServeMux()
-	fs := http.FileServer(http.Dir("/data"))
+	fs := http.FileServer(http.Dir(downloadDir))
 	m.HandleFunc("/data/", func(writer http.ResponseWriter, request *http.Request) {
 		bs, e := httputil.DumpRequest(request, true)
 		if e != nil {
@@ -232,7 +232,10 @@ func main() {
 		splits := strings.Split(strings.TrimSpace(result), "\n")
 		newDownloadUrl := splits[len(splits)-1]
 		fmt.Printf("New location: %v, whitelisted ips: %v\n", newDownloadUrl, strings.Join(ips, ","))
-		utils.DownloadWithProgress(".", newDownloadUrl)
+		err = utils.DownloadWithProgress(".", newDownloadUrl)
+		if err != nil {
+			panic(err)
+		}
 		return
 	}
 
@@ -240,10 +243,10 @@ func main() {
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 
-	downloadDir := "/data"
+	downloadDir := "/home/jumpget/data"
 	go func() {
 		publicPort := viper.GetInt("JUMPGET_PUBLIC_PORT")
-		pubServer := createPublicServer(publicPort)
+		pubServer := createPublicServer(publicPort, downloadDir)
 		log.Printf("starting public server :%v\n", publicPort)
 		log.Println(pubServer.ListenAndServe())
 		wg.Done()
