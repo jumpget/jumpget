@@ -24,6 +24,8 @@ services:
   jumpget:
     image: "lsgrep/jumpget"
     container_name: "jumpget"
+    ports:
+      - 127.0.0.1:4100:4100
     environment:
       - JUPMGET_PUBLIC_PORT=3100
       - JUMPGET_LOCAL_PORT=4100
