@@ -11,7 +11,7 @@
 
 ## Installation
 
-1. You need a JumpGet server. You can get a cheap VPS instance from Linode, Digital Ocean or AWS Lightsail
+1. You need a JumpGet server. You can get a cheap VPS instance from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f), Digital Ocean or AWS Lightsail
 
 2. Add your SSH public key to the server(`~/.ssh/authorized_keys`). The download tasks are submitted through the `SSH`
    connection.
