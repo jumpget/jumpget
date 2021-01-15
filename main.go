@@ -18,23 +18,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/lsgrep/jumpget/ssh"
 	"github.com/lsgrep/jumpget/utils"
 	"github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"log"
-	"net/http"
-	"net/http/httputil"
-	"os"
 	"os/user"
 	"strings"
 	"sync"
-	"time"
 )
 
 var cfgFile string
-var sshPrivateKeyFile string
+var sshPrivKey string
 
 var resourceUrl string
 var sshUsername string
@@ -43,7 +39,66 @@ var sshPort int
 
 var server bool
 
-func getIps() (ips []string) {
+var ips sync.Map
+
+func init() {
+	flag.StringVar(&sshUsername, "user", sshUsername, "ssh username")
+	flag.StringVar(&host, "host", "", "jumpget server host")
+	flag.StringVar(&cfgFile, "config", cfgFile, "config file")
+	flag.StringVar(&sshPrivKey, "ssh-config", sshPrivKey, "ssh private key")
+	flag.IntVar(&sshPort, "ssh-port", 22, "ssh port")
+	flag.BoolVar(&server, "server", false, "server mode (default false)")
+
+	currentUser, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	sshUsername = currentUser.Username
+	hdir, err := homedir.Dir()
+	if err != nil {
+		panic(err)
+	}
+	sshPrivKey = fmt.Sprintf("%s/.ssh/id_rsa", hdir)
+	cfgFile = fmt.Sprintf("%s/.jumpget.yaml", hdir)
+}
+
+func prepareConfig() {
+	// parse config file
+	viper.SetConfigFile(cfgFile)
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Println(err)
+			// Config file not found; ignore error if desired
+		} else {
+			// Config file was found but another error was produced
+		}
+	}
+	viper.AutomaticEnv()
+	flag.Parse()
+}
+
+func checkClientArgs() (err error) {
+	args := flag.Args()
+	if len(args) == 0 {
+		return errors.New("Please pass a url to start downloading")
+	}
+	resourceUrl = args[0]
+	if host == "" {
+		cfgHost := viper.GetString("host")
+		if cfgHost == "" {
+			return errors.New("You have to provide a JumpGet host")
+		} else {
+			host = cfgHost
+		}
+	}
+
+	localPort := viper.GetInt("JUMPGET_LOCAL_PORT")
+	if localPort == 0 {
+		viper.Set("JUMPGET_LOCAL_PORT", 4100)
+	}
+	return nil
+}
+func getIps(remote *ssh.RemoteExecutor) (ips []string) {
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 	go func() {
@@ -56,10 +111,11 @@ func getIps() (ips []string) {
 	}()
 
 	go func() {
-		ip2, err := utils.GetRealIp(sshUsername, host, sshPort, sshPrivateKeyFile)
+		out, err := remote.Execute("echo $SSH_CONNECTION")
 		if err != nil {
 			panic(err)
 		}
+		ip2 := strings.Fields(string(out))[0]
 		ips = append(ips, ip2)
 		wg.Done()
 	}()
@@ -67,230 +123,66 @@ func getIps() (ips []string) {
 	return
 }
 
-var ips sync.Map
-
-func createPublicServer(port int, downloadDir string) *http.Server {
-	m := http.NewServeMux()
-	fs := http.FileServer(http.Dir(downloadDir))
-	m.HandleFunc("/data/", func(writer http.ResponseWriter, request *http.Request) {
-		bs, e := httputil.DumpRequest(request, true)
-		if e != nil {
-			fmt.Println(e)
-		}
-		log.Println(string(bs))
-		ip := strings.Split(request.RemoteAddr, ":")[0]
-		log.Printf("remote ip is: %v\n", ip)
-		xRealIp := request.Header.Get("X-Real-Ip")
-		forwardedIp := request.Header.Get("X-Forwarded-For")
-		validIp := false
-		for _, i := range []string{ip, forwardedIp, xRealIp} {
-			if _, ok := ips.Load(i); ok {
-				validIp = true
-				break
-			}
-		}
-
-		// limit access
-		if validIp {
-			http.StripPrefix("/data/", fs).ServeHTTP(writer, request)
-		} else {
-			writer.WriteHeader(http.StatusNotFound)
-		}
-	})
-
-	server := http.Server{
-		Addr:    fmt.Sprintf(":%v", port),
-		Handler: m,
-	}
-	return &server
-}
-
-func createLocalServer(port int, downloadDir string) *http.Server {
-	type downloadData struct {
-		Url string   `json:"url"`
-		Ips []string `json:"ips"`
-	}
-	r := mux.NewRouter()
-	r.HandleFunc("/download", func(writer http.ResponseWriter, request *http.Request) {
-		params := mux.Vars(request)
-		log.Printf("params: %v\n", params)
-		log.Printf("body: %v\n", request.Body)
-		log.Printf("remote address: %v\n", request.RemoteAddr)
-
-		decoder := json.NewDecoder(request.Body)
-		var data downloadData
-		err := decoder.Decode(&data)
-		if err != nil {
-			writer.Write([]byte(err.Error()))
-			return
-		}
-
-		// whitelist access
-		log.Printf("adding ips: %v to the whitelist\n", data.Ips)
-		for _, ip := range data.Ips {
-			ips.Store(ip, true)
-		}
-		//downloadUrl := utils.FromBase64(data.Url)
-		fileName, err := utils.Download(data.Url, downloadDir)
-		if err != nil {
-			writer.Write([]byte(err.Error()))
-			return
-		}
-		filePath := fmt.Sprintf("%v/%v", downloadDir, fileName)
-		fi, err := os.Stat(filePath)
-		if err != nil {
-			writer.Write([]byte(err.Error()))
-		}
-		// get the size
-		size := fi.Size()
-		writer.Write([]byte(fmt.Sprintf("download completed on the server, file size: %v\n", size)))
-		publicUrl := viper.GetString("JUMPGET_PUBLIC_URL")
-		writer.Write([]byte(fmt.Sprintf("%s/data/%s\n", publicUrl, fileName)))
-
-	}).Methods(http.MethodPost)
-
-	r.HandleFunc("/download/jobs", func(writer http.ResponseWriter, request *http.Request) {
-		params := mux.Vars(request)
-		id := params["id"]
-		writer.Write([]byte(id))
-	}).Methods(http.MethodGet)
-
-	server := http.Server{
-		Addr:    fmt.Sprintf(":%v", port),
-		Handler: r,
-	}
-	return &server
-}
-
-func init() {
-	currentUser, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	sshUsername = currentUser.Username
-	hdir, err := homedir.Dir()
-	if err != nil {
-		panic(err)
-	}
-	sshPrivateKeyFile = fmt.Sprintf("%s/.ssh/id_rsa", hdir)
-	cfgFile = fmt.Sprintf("%s/.jumpget.yaml", hdir)
-}
-
 func main() {
-	flag.StringVar(&sshUsername, "user", sshUsername, "ssh username")
-	flag.StringVar(&host, "host", "", "jumpget server host")
-	flag.StringVar(&cfgFile, "config", cfgFile, "config file")
-	flag.StringVar(&sshPrivateKeyFile, "ssh-config", sshPrivateKeyFile, "ssh private key")
-	flag.IntVar(&sshPort, "ssh-port", 22, "ssh port")
-	flag.BoolVar(&server, "server", false, "server mode (default false)")
-	flag.Parse()
+	prepareConfig()
 
-	// parse config file
-	viper.SetConfigFile(cfgFile)
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			fmt.Println(err)
-			// Config file not found; ignore error if desired
-		} else {
-			// Config file was found but another error was produced
-		}
-	}
-	viper.AutomaticEnv()
-
-	if !server {
-		args := flag.Args()
-		if len(args) == 0 {
-			fmt.Println("Please pass a url to start downloading")
-			flag.Usage()
-			return
-		}
-		resourceUrl = args[0]
-		fmt.Printf("Jumpget task: %v\n", resourceUrl)
-		if host == "" {
-			cfgHost := viper.GetString("host")
-			if cfgHost == "" {
-				fmt.Println("You have to provide jumpget host")
-				flag.Usage()
-				return
-			} else {
-				host = cfgHost
-			}
-		}
-		ips := getIps()
-		localPort := viper.GetInt("JUMPGET_LOCAL_PORT")
-		if localPort == 0 {
-			localPort = 4100
-		}
-
-		params := struct {
-			Ips []string `json:"ips"`
-			Url string   `json:"url"`
-		}{Ips: ips, Url: resourceUrl}
-
-		data, err := json.Marshal(params)
-		if err != nil {
-			panic(err)
-		}
-
-		// check if the port is open
-		command := `curl -s -H "Content-Type: application/json" -X POST --data '%s'  localhost:%d/download`
-		c := fmt.Sprintf(command, string(data), localPort)
-		fmt.Printf("Starting download task on server: %v\n", host)
-		// submit task
-		result := utils.SshCommand(sshPrivateKeyFile,
-			sshUsername, host, sshPort, c)
-		result = strings.TrimSpace(result)
-		splits := strings.Split(strings.TrimSpace(result), "\n")
-		newDownloadUrl := splits[len(splits)-1]
-
-		if !utils.IsValidURL(newDownloadUrl) {
-			errMsg := `Invalid download URL(%s) has been returned from the JumpGet server. 
-						1. check if JumpGet server is running.
-						2. Check if JUMPGET_PUBLIC_URL is configured correctly(http or https schemes should be present)\n`
-			fmt.Printf(errMsg, newDownloadUrl)
-			return
-		}
-
-		fmt.Printf("New location: %v, whitelisted ips: %v\n", newDownloadUrl, strings.Join(ips, ","))
-		err = utils.DownloadWithProgress(".", newDownloadUrl)
-		if err != nil {
-			panic(err)
-		}
+	// server
+	if server {
+		downloadDir := "/home/jumpget/data"
+		startServers(downloadDir)
 		return
 	}
 
-	// server mode
-	wg := new(sync.WaitGroup)
-	wg.Add(2)
+	// check args
+	err := checkClientArgs()
+	if err != nil {
+		fmt.Println(err)
+		flag.Usage()
+		return
+	}
+	remote := ssh.NewRemoteExecutor(sshPrivKey, sshUsername, host, sshPort)
+	err = remote.Init()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer remote.Close()
+	ips := getIps(remote)
+	params := struct {
+		Ips []string `json:"ips"`
+		Url string   `json:"url"`
+	}{Ips: ips, Url: resourceUrl}
 
-	downloadDir := "/home/jumpget/data"
-	go func() {
-		publicPort := viper.GetInt("JUMPGET_PUBLIC_PORT")
-		pubServer := createPublicServer(publicPort, downloadDir)
-		log.Printf("starting public server :%v\n", publicPort)
-		log.Println(pubServer.ListenAndServe())
-		wg.Done()
-	}()
+	data, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
 
-	go func() {
-		localPort := viper.GetInt("JUMPGET_LOCAL_PORT")
-		localServer := createLocalServer(localPort, downloadDir)
-		log.Printf("starting local server :%v\n", localPort)
-		log.Println(localServer.ListenAndServe())
-		wg.Done()
-	}()
+	// check if the port is open
+	command := `curl -s -H "Content-Type: application/json" -X POST --data '%s'  localhost:%d/download`
+	c := fmt.Sprintf(command, string(data), viper.GetInt("JUMPGET_LOCAL_PORT"))
+	// submit task
+	fmt.Printf("Starting download task on server: %v\n", host)
+	//fmt.Printf("command: %v\n", c)
+	result, err := remote.Execute(c)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	output := strings.TrimSpace(string(result))
+	splits := strings.Split(output, "\n")
+	newUrl := splits[len(splits)-1]
+	if !utils.IsValidURL(newUrl) {
+		errMsg := `Invalid download URL(%v) has been returned from the JumpGet server. 
+						1. Check if JumpGet server is running at port: %v.
+						2. Check if JUMPGET_PUBLIC_URL is configured correctly(http or https schemes should be present)\n`
+		fmt.Printf(errMsg, newUrl, viper.GetInt("JUMPGET_LOCAL_PORT"))
+		return
+	}
 
-	go func() {
-		for {
-			h := viper.GetInt64("JUMPGET_FILE_RETAIN_DURATION")
-			if h == 0 {
-				h = 12
-			}
-			dur := h * int64(time.Hour)
-			utils.CleanOldFiles(downloadDir, time.Duration(dur))
-			time.Sleep(time.Hour)
-		}
-
-	}()
-	wg.Wait()
+	fmt.Printf("New location: %v, whitelisted ips: %v\n", newUrl, strings.Join(ips, ","))
+	err = utils.DownloadWithProgress(".", newUrl)
+	if err != nil {
+		panic(err)
+	}
+	return
 }
