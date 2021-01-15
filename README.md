@@ -1,8 +1,13 @@
 # JumpGet [![JumpGet](https://circleci.com/gh/lsgrep/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
 
+![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.png)
+
 ## Why?
 
-![demo](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/lulu.png)
+1. Even with WireGuard, downloads are slow.
+   ![demo](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/lulu.png)
+
+2. `scp`, `rsync` are slow
 
 ## Installation
 
