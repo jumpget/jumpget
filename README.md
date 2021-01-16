@@ -47,7 +47,7 @@ You can setup TLS with Traefik or Nginx. Checkout `docker-compose.yaml` for Trae
 For *nix systems:
 
 ```
-sudo curl -L https://github.com/lsgrep/jumpget/releases/download/v0.1.8/jumpget_$(uname -s)_amd64 -o /usr/local/bin/jumpget
+sudo curl -L https://github.com/lsgrep/jumpget/releases/download/v0.1.30/jumpget_$(uname -s)_amd64 -o /usr/local/bin/jumpget
 sudo chmod +x /usr/local/bin/jumpget
 ```
 
