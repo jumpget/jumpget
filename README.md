@@ -13,6 +13,8 @@ file only to the JumpGet client IPs(whitelisted).
 
 ## Installation
 
+### JumpGet Server
+
 1. You need a JumpGet server. You can get a cheap VPS instance
    from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f), Digital Ocean or AWS Lightsail
 
@@ -30,7 +32,7 @@ docker run --name jumpget -p 3100:3100 \
 
 ```
 
-#### JumpGet Server with TLS
+#### JumpGet Server with LetsEncrypt TLS
 
 You can setup TLS with Traefik or Nginx. Checkout `docker-compose.yaml` for Traefik setup.
 
@@ -41,7 +43,9 @@ You can setup TLS with Traefik or Nginx. Checkout `docker-compose.yaml` for Trae
 
 - `docker-compose up -d`
 
-4. Install JumpGet client, Checkout [Releases](https://github.com/lsgrep/jumpget/releases)
+### JumpGet Client
+
+4. Install JumpGet client, Checkout [Releases](https://github.com/lsgrep/jumpget/releases) for binaries.
 
 For *nix systems:
 
