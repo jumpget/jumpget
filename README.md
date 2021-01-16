@@ -6,7 +6,7 @@ file only to the JumpGet client IPs(whitelisted).
 
 ## Why?
 
-1. Even with WireGuard, downloads are slow.
+1. Even with WireGuard, downloads can be slow.
    ![demo](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/lulu.png)
 
 2. `scp`, `rsync` are slow
