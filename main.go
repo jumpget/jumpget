@@ -29,17 +29,15 @@ import (
 	"sync"
 )
 
-var cfgFile string
-var sshPrivKey string
-
-var resourceUrl string
-var sshUsername string
-var host string
-var sshPort int
-
-var server bool
-
-var ips sync.Map
+var (
+	cfgFile     string
+	sshPrivKey  string
+	resourceUrl string
+	sshUsername string
+	host        string
+	sshPort     int
+	server      bool
+)
 
 func init() {
 	flag.StringVar(&sshUsername, "user", sshUsername, "ssh username")

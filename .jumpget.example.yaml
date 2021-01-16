@@ -1,0 +1,4 @@
+# Default config location: $HOME/.jumpget.yaml
+host: "example.com"
+user: "example_user"
+ssh-port: "2253"

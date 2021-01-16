@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var ips sync.Map
+
 func createPublicServer(port int, downloadDir string) *http.Server {
 	m := http.NewServeMux()
 	fs := http.FileServer(http.Dir(downloadDir))
