@@ -1,9 +1,8 @@
 # JumpGet [![JumpGet](https://circleci.com/gh/lsgrep/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
 
 ![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.png)
-JumpGet client submits download url to the JumpGet server with `ssh` tunnel, then JumpGet server downloads & serves the file
-only to the JumpGet client IPs(whitelisted).
-
+JumpGet client submits download url to the JumpGet server with `ssh` tunnel, then JumpGet server downloads & serves the
+file only to the JumpGet client IPs(whitelisted).
 
 ## Why?
 
@@ -18,7 +17,7 @@ only to the JumpGet client IPs(whitelisted).
    from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f), Digital Ocean or AWS Lightsail
 
 2. Add your SSH public key to the server(`~/.ssh/authorized_keys`).
-   
+
 3. Setup the JumpGet Server
 
 #### Without TLS
@@ -51,6 +50,9 @@ sudo curl -L https://github.com/lsgrep/jumpget/releases/download/v0.1.30/jumpget
 sudo chmod +x /usr/local/bin/jumpget
 ```
 
+or just:
+`go get -u github.com/lsgrep/jumpget`
+
 ## Configuration
 
 #### Server Side Environment Variables
@@ -62,7 +64,17 @@ sudo chmod +x /usr/local/bin/jumpget
 
 #### Client Configuration
 
-`$HOME/.jumpget.yaml` stores client configuration info. `jumpget --help` to detailed information
+`$HOME/.jumpget.yaml` stores client configuration info.
+
+```
+# $HOME/.jumpget.yaml
+host: "example.com"
+user: "example_user"
+ssh-port: "2253"
+
+```
+
+`jumpget --help` to detailed information
 
 - `JUMPGET_LOCAL_PORT` default value 4100, this value should be consistent with server
 
