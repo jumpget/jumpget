@@ -45,7 +45,7 @@ You can setup TLS with Traefik or Nginx. Checkout `docker-compose.yaml` for Trae
 
 ### JumpGet Client
 
-4. Install JumpGet client, Checkout [Releases](https://github.com/lsgrep/jumpget/releases) for binaries.
+Checkout [Releases](https://github.com/lsgrep/jumpget/releases) for CircleCi built binaries.
 
 For *nix systems:
 
@@ -95,7 +95,7 @@ ssh-port: "2253"
 1. Enable better TCP congestion control method on JumpGet server
 
 ```
-# bbr
+# /etc/sysctl.conf
 net.ipv4.tcp_congestion_control=bbr
 ```
 
