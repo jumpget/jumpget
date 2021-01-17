@@ -11,11 +11,15 @@ file only to the JumpGet client IPs(whitelisted).
 
 2. `scp`, `rsync` are slow
 
+3. `wget` vs `JumpGet`
+   ![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.png)
+
 ## Installation
 
 ### JumpGet Server
 
-1. You need a JumpGet server. You can get a cheap VPS instance from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f) (referral link), Digital Ocean or
+1. You need a JumpGet server. You can get a cheap VPS instance
+   from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f) (referral link), Digital Ocean or
    AWS Lightsail
 
 2. Add your SSH public key to the server(`~/.ssh/authorized_keys`).
