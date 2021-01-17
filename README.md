@@ -17,7 +17,7 @@ file only to the JumpGet client IPs(whitelisted).
 
 1. You need a VPS instance with fast network. You can get a cheap instance
    from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f) (
-   referral link), Digital Ocean or AWS Lightsail etc
+   referral link), Digital Ocean or AWS Lightsail etc.
 
 2. Add your SSH public key to the server(`~/.ssh/authorized_keys`).
 
@@ -97,7 +97,7 @@ ssh-port: "2253"
 
 ```
 # /etc/sysctl.conf
-# you have to have >= 4.15 kernel to use this flag
+# you have to have >= 4.15 kernel to use bbr
 net.ipv4.tcp_congestion_control=bbr
 ```
 
