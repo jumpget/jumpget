@@ -21,7 +21,7 @@ func (bar *progressBar) setSymbol(symbol string) {
 	bar.symbol = symbol
 }
 
-func NewBar(start, total int64) *progressBar {
+func newBar(start, total int64) *progressBar {
 	bar := &progressBar{}
 	bar.cur = start
 	bar.total = total
@@ -35,13 +35,13 @@ func NewBar(start, total int64) *progressBar {
 	return bar
 }
 
-func NewCustomBar(start, total int64, symbol string) *progressBar {
-	bar := NewBar(start, total)
+func NewProgressBar(start, total int64, symbol string) *progressBar {
+	bar := newBar(start, total)
 	bar.setSymbol(symbol)
 	return bar
 }
 
-func (bar *progressBar) Show(cur int64) {
+func (bar *progressBar) Update(cur int64) {
 	bar.cur = cur
 	bar.percent = bar.getPercent()
 	progress := 0

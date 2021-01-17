@@ -27,7 +27,6 @@ import (
 	"net"
 	"os/user"
 	"strings"
-	"sync"
 )
 
 var (
@@ -98,32 +97,13 @@ func checkClientArgs() (err error) {
 	return nil
 }
 func getIps(remote *ssh.RemoteExecutor) (ips []string) {
-	wg := new(sync.WaitGroup)
-	wg.Add(2)
-	go func() {
-		ip1, err := utils.GetMyIp()
-		if err != nil {
-			panic(err)
-		}
-		ips = append(ips, ip1)
-		wg.Done()
-	}()
-
-	go func() {
-		out, err := remote.Execute("echo $SSH_CONNECTION")
-		if err != nil {
-			panic(err)
-		}
-		ip2 := net.ParseIP(strings.Fields(string(out))[0])
-		if ip2 != nil {
-			ips = append(ips, ip2.String())
-		}
-		wg.Done()
-	}()
-	wg.Wait()
-
-	if len(ips) == 2 && ips[0] == ips[1] {
-		return ips[1:]
+	out, err := remote.Execute("echo $SSH_CONNECTION")
+	if err != nil {
+		panic(err)
+	}
+	ip := net.ParseIP(strings.Fields(string(out))[0])
+	if ip != nil {
+		ips = append(ips, ip.String())
 	}
 
 	return ips
@@ -134,8 +114,7 @@ func main() {
 
 	// server
 	if server {
-		downloadDir := "/home/jumpget/data"
-		startServers(downloadDir)
+		startServers()
 		return
 	}
 
@@ -164,7 +143,7 @@ func main() {
 		panic(err)
 	}
 
-	// check if the port is open
+	// TODO check if the port is open
 	command := `curl -s -H "Content-Type: application/json" -X POST --data '%s'  localhost:%d/download`
 	c := fmt.Sprintf(command, string(data), viper.GetInt("JUMPGET_LOCAL_PORT"))
 	// submit task
