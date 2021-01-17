@@ -101,7 +101,7 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 
 	duration := time.Since(start)
 	speed := float64(total) / 1024.0 / duration.Seconds()
-	fmt.Printf("Download finished in %.2f, average speed: %.2f KB/s\n", duration.Seconds(), speed)
+	fmt.Printf("Download finished in %.2f seconds, average speed: %.2f KB/s\n", duration.Seconds(), speed)
 	return nil
 }
 
