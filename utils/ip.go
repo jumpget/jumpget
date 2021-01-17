@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,7 +27,16 @@ func GetMyIp() (ip string, err error) {
 
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&data)
-	return data.Ip, err
+	if err != nil {
+		return "", err
+	}
+
+	parsedIp := net.ParseIP(data.Ip)
+	if parsedIp == nil {
+		return "", errors.New("Invalid IP")
+	}
+
+	return parsedIp.String(), err
 }
 
 func GetRealIp(user, host string, port int, privateFile string) (ip string, err error) {

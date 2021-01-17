@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"net"
 	"os/user"
 	"strings"
 	"sync"
@@ -40,13 +41,6 @@ var (
 )
 
 func init() {
-	flag.StringVar(&sshUsername, "user", sshUsername, "ssh username")
-	flag.StringVar(&host, "host", "", "jumpget server host")
-	flag.StringVar(&cfgFile, "config", cfgFile, "config file")
-	flag.StringVar(&sshPrivKey, "ssh-config", sshPrivKey, "ssh private key")
-	flag.IntVar(&sshPort, "ssh-port", 22, "ssh port")
-	flag.BoolVar(&server, "server", false, "server mode (default false)")
-
 	currentUser, err := user.Current()
 	if err != nil {
 		panic(err)
@@ -58,6 +52,13 @@ func init() {
 	}
 	sshPrivKey = fmt.Sprintf("%s/.ssh/id_rsa", hdir)
 	cfgFile = fmt.Sprintf("%s/.jumpget.yaml", hdir)
+
+	flag.StringVar(&sshUsername, "user", sshUsername, "ssh username")
+	flag.StringVar(&host, "host", "", "jumpget server host")
+	flag.StringVar(&cfgFile, "config", cfgFile, "jumpget config file")
+	flag.StringVar(&sshPrivKey, "ssh-config", sshPrivKey, "ssh private key")
+	flag.IntVar(&sshPort, "ssh-port", 22, "ssh port")
+	flag.BoolVar(&server, "server", false, "server mode (default false)")
 }
 
 func prepareConfig() {
@@ -113,12 +114,19 @@ func getIps(remote *ssh.RemoteExecutor) (ips []string) {
 		if err != nil {
 			panic(err)
 		}
-		ip2 := strings.Fields(string(out))[0]
-		ips = append(ips, ip2)
+		ip2 := net.ParseIP(strings.Fields(string(out))[0])
+		if ip2 != nil {
+			ips = append(ips, ip2.String())
+		}
 		wg.Done()
 	}()
 	wg.Wait()
-	return
+
+	if len(ips) == 2 && ips[0] == ips[1] {
+		return ips[1:]
+	}
+
+	return ips
 }
 
 func main() {
