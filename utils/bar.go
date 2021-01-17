@@ -43,11 +43,17 @@ func NewCustomBar(start, total int64, symbol string) *progressBar {
 
 func (bar *progressBar) Show(cur int64) {
 	bar.cur = cur
-	last := bar.percent
 	bar.percent = bar.getPercent()
-	if bar.percent != last && bar.percent%2 == 0 {
+	progress := 0
+	if bar.percent == 100 {
+		progress = 50 - len(bar.rate)
+	} else {
+		progress = int(bar.percent/2) - len(bar.rate)
+	}
+	for i := 0; i < progress; i++ {
 		bar.rate += bar.symbol
 	}
+
 	fmt.Printf("\r[%-50s]%3d%% %8v/%v", bar.rate, bar.percent,
 		humanize.Bytes(uint64(bar.cur)), humanize.Bytes(uint64(bar.total)))
 }

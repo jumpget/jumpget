@@ -88,10 +88,7 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 		out.Close()
 		return err
 	}
-
-	// The progress use the same line so print a new line once it's finished downloading
-	fmt.Print("\n")
-
+	fmt.Println()
 	// Close the file without defer so it can happen before Rename()
 	out.Close()
 
