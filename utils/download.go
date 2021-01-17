@@ -2,13 +2,13 @@ package utils
 
 import (
 	"fmt"
-	"github.com/dustin/go-humanize"
 	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -77,8 +77,13 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 	}
 	defer resp.Body.Close()
 
+	contentLength := resp.Header.Get("Content-Length")
+	total, err := strconv.ParseInt(contentLength, 10, 64)
+	if err != nil {
+		return err
+	}
 	// Create our progress reporter and pass it to be used alongside our writer
-	counter := &WriteCounter{}
+	counter := NewWriteCounter(total)
 	if _, err = io.Copy(out, io.TeeReader(resp.Body, counter)); err != nil {
 		out.Close()
 		return err
@@ -95,29 +100,37 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 	}
 
 	duration := time.Since(start)
-	fmt.Printf("Download finished in %v\n", duration)
+	speed := float64(total) / 1024.0 / duration.Seconds()
+	fmt.Printf("Download finished in %.2f, average speed: %.2f KB/s\n", duration.Seconds(), speed)
 	return nil
 }
 
-// WriteCounter counts the number of bytes written to it. It implements to the io.Writer interface
+// writeCounter counts the number of bytes written to it. It implements to the io.Writer interface
 // and we can pass this into io.TeeReader() which will report progress on each write cycle.
-type WriteCounter struct {
-	Total uint64
+type writeCounter struct {
+	Current int64
+	bar     *progressBar
 }
 
-func (wc *WriteCounter) Write(p []byte) (int, error) {
+func NewWriteCounter(total int64) *writeCounter {
+	counter := &writeCounter{bar: NewCustomBar(0, total, "=")}
+	return counter
+}
+
+func (counter *writeCounter) Write(p []byte) (int, error) {
 	n := len(p)
-	wc.Total += uint64(n)
-	wc.PrintProgress()
+	counter.Current += int64(n)
+	counter.PrintProgress()
 	return n, nil
 }
 
-func (wc WriteCounter) PrintProgress() {
+func (counter writeCounter) PrintProgress() {
 	// Clear the line by using a character return to go back to the start and remove
 	// the remaining characters by filling it with spaces
-	fmt.Printf("\r%s", strings.Repeat(" ", 35))
+	//fmt.Printf("\r%s", strings.Repeat(" ", 35))
 
 	// Return again and print current status of download
 	// We use the humanize package to print the bytes in a meaningful way (e.g. 10 MB)
-	fmt.Printf("\rDownloading... %s complete", humanize.Bytes(wc.Total))
+	//fmt.Printf("\rDownloading... %s complete", humanize.Bytes(wc.Total))
+	counter.bar.Show(counter.Current)
 }
