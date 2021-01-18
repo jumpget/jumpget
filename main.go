@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/lsgrep/jumpget/ssh"
 	"github.com/lsgrep/jumpget/utils"
-	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -45,7 +44,7 @@ func init() {
 		panic(err)
 	}
 	sshUsername = currentUser.Username
-	hdir, err := homedir.Dir()
+	hdir := currentUser.HomeDir
 	if err != nil {
 		panic(err)
 	}
@@ -126,7 +125,7 @@ func main() {
 		return
 	}
 	remote := ssh.NewRemoteExecutor(sshPrivKey, sshUsername, host, sshPort)
-	err = remote.Init()
+	err = remote.Connect()
 	if err != nil {
 		fmt.Println(err.Error())
 		return

@@ -31,6 +31,9 @@ func NewRemoteExecutor(keyFile string, user string, host string, port int) *Remo
 }
 
 func (exec *RemoteExecutor) Execute(command string) ([]byte, error) {
+	if exec.client == nil {
+		return nil, errors.New("Please connect to remote before executing commands")
+	}
 	session, err := exec.client.NewSession()
 	if err != nil {
 		exec.client.Close()
@@ -52,7 +55,7 @@ func paresPrivateKey(keyfile string) (key ssh.Signer, err error) {
 	return key, nil
 }
 
-func (exec *RemoteExecutor) Init() error {
+func (exec *RemoteExecutor) Connect() error {
 	signer, err := paresPrivateKey(exec.privateKeyFile)
 	if err != nil {
 		return err

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-uuid"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"io"
 	"log"
@@ -24,7 +24,7 @@ func Download(url, downloadDir string) (fileName string, err error) {
 	}
 
 	if fileName == "" {
-		fileName, _ = uuid.GenerateUUID()
+		fileName = uuid.New().String()
 	}
 
 	filePath := fmt.Sprintf("%s/%s", downloadDir, fileName)
