@@ -2,7 +2,6 @@
 
 ![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.gif)
 
-
 JumpGet client submits download url to the JumpGet server with `ssh` tunnel, then JumpGet server downloads & serves the
 file only to the JumpGet client IPs(whitelisted).
 
@@ -19,7 +18,7 @@ file only to the JumpGet client IPs(whitelisted).
 
 1. You need a VPS instance with fast network. You can get a cheap instance
    from [Linode](https://www.linode.com/?r=ceabf8f0da919a9253a7c5a8757366ad7bbfc30f) (
-   referral link), Digital Ocean or AWS Lightsail etc.  
+   referral link), Digital Ocean or AWS Lightsail etc.
 
 2. Add your SSH public key to the server(`~/.ssh/authorized_keys`).
 
@@ -90,7 +89,6 @@ ssh-port: "2253"
 - Download tasks are submitted through `ssh`
 - Public File Server can only accessed through whitelisted IPs
 - whitelisted IPs are fetched through:
-    - https://api.ipify.org
     - $SSH_CONNECTION on JumpGet server
 
 ## Performance

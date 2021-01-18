@@ -17,7 +17,9 @@ import (
 
 var ips sync.Map
 
-func createPublicServer(port int, downloadDir string) *http.Server {
+func createPublicServer(port int) *http.Server {
+	downloadDir := viper.GetString("JUMPGET_DATA_DIR")
+
 	m := http.NewServeMux()
 	fs := http.FileServer(http.Dir(downloadDir))
 	m.HandleFunc("/data/", func(writer http.ResponseWriter, request *http.Request) {
@@ -53,7 +55,9 @@ func createPublicServer(port int, downloadDir string) *http.Server {
 	return &server
 }
 
-func createLocalServer(port int, downloadDir string) *http.Server {
+func createLocalServer(port int) *http.Server {
+	downloadDir := viper.GetString("JUMPGET_DATA_DIR")
+
 	type downloadData struct {
 		Url string   `json:"url"`
 		Ips []string `json:"ips"`
@@ -104,12 +108,12 @@ func createLocalServer(port int, downloadDir string) *http.Server {
 	return &server
 }
 
-func startServers(downloadDir string) {
+func startServers() {
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 	go func() {
 		publicPort := viper.GetInt("JUMPGET_PUBLIC_PORT")
-		pubServer := createPublicServer(publicPort, downloadDir)
+		pubServer := createPublicServer(publicPort)
 		log.Printf("starting public server :%v\n", publicPort)
 		log.Println(pubServer.ListenAndServe())
 		wg.Done()
@@ -117,13 +121,14 @@ func startServers(downloadDir string) {
 
 	go func() {
 		localPort := viper.GetInt("JUMPGET_LOCAL_PORT")
-		localServer := createLocalServer(localPort, downloadDir)
+		localServer := createLocalServer(localPort)
 		log.Printf("starting local server :%v\n", localPort)
 		log.Println(localServer.ListenAndServe())
 		wg.Done()
 	}()
 
 	go func() {
+		downloadDir := viper.GetString("JUMPGET_DATA_DIR")
 		for {
 			h := viper.GetInt64("JUMPGET_FILE_RETAIN_DURATION")
 			if h == 0 {

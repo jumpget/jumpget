@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-uuid"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"io"
 	"log"
@@ -24,7 +24,7 @@ func Download(url, downloadDir string) (fileName string, err error) {
 	}
 
 	if fileName == "" {
-		fileName, _ = uuid.GenerateUUID()
+		fileName = uuid.New().String()
 	}
 
 	filePath := fmt.Sprintf("%s/%s", downloadDir, fileName)
@@ -110,7 +110,7 @@ type writeCounter struct {
 }
 
 func NewWriteCounter(total int64) *writeCounter {
-	counter := &writeCounter{bar: NewCustomBar(0, total, "=")}
+	counter := &writeCounter{bar: NewProgressBar(0, total, "=")}
 	return counter
 }
 
@@ -129,5 +129,5 @@ func (counter writeCounter) PrintProgress() {
 	// Return again and print current status of download
 	// We use the humanize package to print the bytes in a meaningful way (e.g. 10 MB)
 	//fmt.Printf("\rDownloading... %s complete", humanize.Bytes(wc.Total))
-	counter.bar.Show(counter.Current)
+	counter.bar.Update(counter.Current)
 }
