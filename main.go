@@ -36,9 +36,9 @@ var (
 	host        string
 
 	// version info
-	version   string
-	buildDate string
-	gitHash   string
+	Version   string
+	BuildDate string
+	GitHash   string
 
 	sshPort     int
 	server      bool
@@ -121,7 +121,7 @@ func main() {
 	prepareConfig()
 
 	if showVersion {
-		fmt.Printf("jumpget version: %v\nbuild date: %v\ngit version: %v\n", version, buildDate, gitHash)
+		fmt.Printf("jumpget version: %v\nbuild date: %v\ngit version: %v\n", Version, BuildDate, GitHash)
 		return
 	}
 

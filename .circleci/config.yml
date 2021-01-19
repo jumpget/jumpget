@@ -1,4 +1,4 @@
-version: 2
+  version: 2
 jobs:
   test-build-job:
     docker:
@@ -26,7 +26,7 @@ jobs:
             export CURRENT_VERSION=v0.1.$CIRCLE_BUILD_NUM
             go get github.com/mitchellh/gox
             go get -u github.com/tcnksm/ghr
-            CGO_ENABLED=0 gox -arch="amd64" -ldflags "-X $PROJECT_URL/main.version=$CURRENT_VERSION -X $PROJECT_URL/main.buildDate=$BUILD_DATE -X $PROJECT_URL/main.gitHash=$GIT_HASH" -output "dist/${CIRCLE_PROJECT_REPONAME}_{{.OS}}_{{.Arch}}"
+            CGO_ENABLED=0 gox -arch="amd64" -ldflags "-X $PROJECT_URL/main.Version=$CURRENT_VERSION -X $PROJECT_URL/main.BuildDate=$BUILD_DATE -X $PROJECT_URL/main.GitHash=$GIT_HASH" -output "dist/${CIRCLE_PROJECT_REPONAME}_{{.OS}}_{{.Arch}}"
             ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 $CURRENT_VERSION dist/ || true
 
 
