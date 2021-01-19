@@ -1,6 +1,6 @@
-# JumpGet [![JumpGet](https://circleci.com/gh/lsgrep/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
+# JumpGet [![JumpGet](https://circleci.com/gh/jumpget/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
 
-![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.gif)
+![jumpget](https://raw.githubusercontent.com/jumpget/jumpget/master/assets/jumpget.gif)
 
 JumpGet client submits download url to the JumpGet server with `ssh` tunnel, then JumpGet server downloads & serves the
 file only to the JumpGet client IPs(whitelisted).
@@ -10,7 +10,7 @@ file only to the JumpGet client IPs(whitelisted).
 1. `scp`, `rsync` are slow
 
 2. `wget` vs `JumpGet`
-   ![jumpget](https://raw.githubusercontent.com/lsgrep/jumpget/master/assets/jumpget.png)
+   ![jumpget](https://raw.githubusercontent.com/jumpget/jumpget/master/assets/jumpget.png)
 
 ## Installation
 
