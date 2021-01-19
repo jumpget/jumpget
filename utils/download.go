@@ -64,9 +64,14 @@ func Download(link, downloadDir string) (fileName string, err error) {
 	return fileName, err
 }
 
-func DownloadWithProgress(downloadDir string, url string) (err error) {
-	splits := strings.Split(url, "/")
+func DownloadWithProgress(downloadDir string, link string) (err error) {
+	splits := strings.Split(link, "/")
 	fileName := splits[len(splits)-1]
+	fileName, err = url.PathUnescape(fileName)
+	if err != nil {
+		return err
+	}
+
 	filePath := fmt.Sprintf("%s/%s", downloadDir, fileName)
 	start := time.Now()
 	// Create the file, but give it a tmp file extension, this means we won't overwrite a
@@ -77,7 +82,7 @@ func DownloadWithProgress(downloadDir string, url string) (err error) {
 	}
 
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := http.Get(link)
 	if err != nil {
 		out.Close()
 		return err
