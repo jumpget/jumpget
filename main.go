@@ -34,8 +34,16 @@ var (
 	resourceUrl string
 	sshUsername string
 	host        string
+
+	// version info
+	Version   string
+	BuildDate string
+	GitHash   string
+
 	sshPort     int
 	server      bool
+	verbose     bool
+	showVersion bool
 )
 
 func init() {
@@ -57,6 +65,7 @@ func init() {
 	flag.StringVar(&sshPrivKey, "ssh-config", sshPrivKey, "ssh private key")
 	flag.IntVar(&sshPort, "ssh-port", 22, "ssh port")
 	flag.BoolVar(&server, "server", false, "server mode (default false)")
+	flag.BoolVar(&showVersion, "version", false, "show version")
 }
 
 func prepareConfig() {
@@ -110,6 +119,11 @@ func getIps(remote *ssh.RemoteExecutor) (ips []string) {
 
 func main() {
 	prepareConfig()
+
+	if showVersion {
+		fmt.Printf("jumpget version: %v\nbuild date: %v\ngit version: %v\n", Version, BuildDate, GitHash)
+		return
+	}
 
 	// server
 	if server {
