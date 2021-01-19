@@ -7,15 +7,16 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func Download(url, downloadDir string) (fileName string, err error) {
-	log.Printf("downloading file from : %v\n", url)
-	splits := strings.Split(url, "/")
+func Download(link, downloadDir string) (fileName string, err error) {
+	log.Printf("downloading file from : %v\n", link)
+	splits := strings.Split(link, "/")
 	fileName = splits[len(splits)-1]
 
 	if strings.Contains(fileName, "?") {
@@ -25,11 +26,17 @@ func Download(url, downloadDir string) (fileName string, err error) {
 
 	if fileName == "" {
 		fileName = uuid.New().String()
+	} else {
+		//
+		fileName, err = url.PathUnescape(fileName)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	filePath := fmt.Sprintf("%s/%s", downloadDir, fileName)
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := http.Get(link)
 	if err != nil {
 		return
 	}

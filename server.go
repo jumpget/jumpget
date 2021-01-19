@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -44,6 +45,7 @@ func createPublicServer(port int) *http.Server {
 		if validIp {
 			http.StripPrefix("/data/", fs).ServeHTTP(writer, request)
 		} else {
+			log.Printf("invalid ip: %v", []string{ip, forwardedIp, xRealIp})
 			writer.WriteHeader(http.StatusNotFound)
 		}
 	})
@@ -97,7 +99,7 @@ func createLocalServer(port int) *http.Server {
 		size := fi.Size()
 		writer.Write([]byte(fmt.Sprintf("download completed on the server, file size: %v\n", size)))
 		publicUrl := viper.GetString("JUMPGET_PUBLIC_URL")
-		writer.Write([]byte(fmt.Sprintf("%s/data/%s\n", publicUrl, fileName)))
+		writer.Write([]byte(fmt.Sprintf("%s/data/%s\n", publicUrl, url.PathEscape(fileName))))
 
 	}).Methods(http.MethodPost)
 
