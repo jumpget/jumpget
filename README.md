@@ -1,4 +1,4 @@
-# JumpGet [![JumpGet](https://circleci.com/gh/jumpget/jumpget.svg?style=svg)](https://circleci.com/gh/jumpget/jumpget) [![docker-build](https://img.shields.io/docker/cloud/build/jumpget/jumpget?style=for-the-badge)](https://hub.docker.com/repository/docker/jumpget/jumpget)
+# JumpGet [![JumpGet](https://circleci.com/gh/jumpget/jumpget.svg?style=svg)](https://circleci.com/gh/jumpget/jumpget) [![docker-build](https://img.shields.io/docker/cloud/build/jumpget/jumpget)](https://hub.docker.com/repository/docker/jumpget/jumpget)
 
 This tool makes sense if your network drops packets a lot. It works as if a file CDN on demand, assuming you have a good
 network connectivity on your VPS & you've set better TCP params on your VPS. I have a shitty network and this tool is
