@@ -1,8 +1,8 @@
 # JumpGet [![JumpGet](https://circleci.com/gh/jumpget/jumpget.svg?style=svg)](https://circleci.com/gh/lsgrep/jumpget)
 
-This tool only make sense if your networks drops packets a lot. It works as if a file CDN on demand. You can fetch files
-to your VPS then you can download it from your VPS assuming you have a good network connectivity on your VPS & you've
-set better TCP params on your VPS.
+This tool makes sense if your network drops packets a lot. It works as if a file CDN on demand, assuming you have a good
+network connectivity on your VPS & you've set better TCP params on your VPS. I have a shitty network and this tool is
+making my life easier.
 
 ![jumpget](https://raw.githubusercontent.com/jumpget/jumpget/master/assets/jumpget.gif)
 
