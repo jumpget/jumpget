@@ -56,7 +56,8 @@ Checkout [Releases](https://github.com/lsgrep/jumpget/releases) for CircleCi bui
 For *nix systems:
 
 ```
-sudo curl -L https://github.com/lsgrep/jumpget/releases/download/v0.1.30/jumpget_$(uname -s)_amd64 -o /usr/local/bin/jumpget
+JUMPGET_LATEST_VERSION=$(curl -s https://api.github.com/repos/jumpget/jumpget/releases/latest | grep "tag_name" | cut -d'v' -f2 | cut -d'"' -f1)
+sudo curl -L https://github.com/lsgrep/jumpget/releases/download/v${JUMPGET_LATEST_VERSION}/jumpget_$(uname -s|tr '[:upper:]' '[:lower:]')_amd64 -o /usr/local/bin/jumpget
 sudo chmod +x /usr/local/bin/jumpget
 ```
 
