@@ -8,7 +8,6 @@ WORKDIR $GOPATH/src/github.com/lsgrep/jumpget
 ADD . $GOPATH/src/github.com/lsgrep/jumpget
 
 
-# dep ensure
 RUN go build -o app -a -ldflags '-extldflags "-static"' github.com/lsgrep/jumpget; mv app /app
 
 ## final container

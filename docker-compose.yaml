@@ -19,7 +19,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   jumpget:
-    image: "lsgrep/jumpget"
+    image: "jumpget/jumpget"
     container_name: "jumpget"
     ports:
       - 127.0.0.1:4100:4100
