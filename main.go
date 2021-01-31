@@ -104,22 +104,22 @@ func checkClientArgs() (err error) {
 	}
 	return nil
 }
-func getIps(remote *ssh.RemoteExecutor) (ips []string) {
+func getIps(remote *ssh.RemoteExecutor) (ips []string, err error) {
 	out, err := remote.Execute("echo $SSH_CONNECTION")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	ip := net.ParseIP(strings.Fields(string(out))[0])
 	if ip != nil {
 		ips = append(ips, ip.String())
 	}
 
-	return ips
+	return ips, nil
 }
 
 func main() {
 	prepareConfig()
-
+	var err error
 	if showVersion {
 		fmt.Printf("jumpget version: %v\nbuild date: %v\ngit version: %v\n", Version, BuildDate, GitHash)
 		return
@@ -127,12 +127,20 @@ func main() {
 
 	// server
 	if server {
-		startServers()
-		return
+		goto serverModule
 	}
+	goto clientModule
 
-	// check args
-	err := checkClientArgs()
+serverModule:
+	startServers()
+	return
+
+clientExit:
+	fmt.Println(err.Error())
+	return
+
+clientModule:
+	err = checkClientArgs()
 	if err != nil {
 		fmt.Println(err)
 		flag.Usage()
@@ -141,11 +149,13 @@ func main() {
 	remote := ssh.NewRemoteExecutor(sshPrivKey, sshUsername, host, sshPort)
 	err = remote.Connect()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		goto clientExit
 	}
 	defer remote.Close()
-	ips := getIps(remote)
+	ips, err := getIps(remote)
+	if err != nil {
+		goto clientExit
+	}
 	params := struct {
 		Ips []string `json:"ips"`
 		Url string   `json:"url"`
@@ -153,7 +163,7 @@ func main() {
 
 	data, err := json.Marshal(params)
 	if err != nil {
-		panic(err)
+		goto clientExit
 	}
 
 	// TODO check if the port is open
@@ -164,23 +174,24 @@ func main() {
 	//fmt.Printf("command: %v\n", c)
 	result, err := remote.Execute(c)
 	if err != nil {
-		fmt.Println(err.Error())
+		goto clientExit
 	}
 	output := strings.TrimSpace(string(result))
 	splits := strings.Split(output, "\n")
 	newUrl := splits[len(splits)-1]
 	if !utils.IsValidURL(newUrl) {
-		errMsg := `Invalid download URL(%v) has been returned from the JumpGet server. 
-						1. Check if JumpGet server is running at port: %v.
-						2. Check if JUMPGET_PUBLIC_URL is configured correctly(http or https schemes should be present)\n`
-		fmt.Printf(errMsg, newUrl, viper.GetInt("JUMPGET_LOCAL_PORT"))
-		return
+		errTemplate := `Invalid response(%v) has been returned from the JumpGet server. 
+1. Check if the resource is available for download.
+2. Check if JumpGet server is running at port: %v.
+3. Check if JUMPGET_PUBLIC_URL is configured correctly(http or https schemes should be present).`
+		err = errors.New(fmt.Sprintf(errTemplate, newUrl, viper.GetInt("JUMPGET_LOCAL_PORT")))
+		goto clientExit
 	}
 
 	fmt.Printf("New location: %v, whitelisted ips: %v\n", newUrl, strings.Join(ips, ","))
 	err = utils.DownloadWithProgress(".", newUrl)
 	if err != nil {
-		panic(err)
+		goto clientExit
 	}
 	return
 }
